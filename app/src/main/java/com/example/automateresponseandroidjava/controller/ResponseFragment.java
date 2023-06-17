@@ -1,89 +1,112 @@
 package com.example.automateresponseandroidjava.controller;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.automateresponseandroidjava.R;
+import com.example.automateresponseandroidjava.adapter.ResponseAdapter;
+import com.example.automateresponseandroidjava.model.Response;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-public class ResponseFragment extends Fragment {
-
-    public interface OnSendMessageListener {
-        void onSendMessage(String phoneNumber, String message);
-    }
+public class ResponseFragment extends Fragment implements ResponseAdapter.OnResponseClickListener {
 
     private static final String PREFS_NAME = "ResponsePrefs";
     private static final String PREF_RESPONSES = "SavedResponses";
 
-    private ListView responseListView;
-    private EditText responseEditText;
-    private Button addButton;
-    private ArrayAdapter<String> responseAdapter;
-    private ArrayList<String> responseList;
-
+    private RecyclerView recyclerView;
+    private ResponseAdapter responseAdapter;
+    private List<Response> responseList;
     private SharedPreferences preferences;
 
-    public ResponseFragment() {
-        // Empty constructor required
-    }
+    private EditText responseEditText;
+    private Button addResponseButton;
 
+    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_response, container, false);
-
-        responseListView = view.findViewById(R.id.responseListView);
+        recyclerView = view.findViewById(R.id.responseRecyclerView);
         responseEditText = view.findViewById(R.id.responseEditText);
-        addButton = view.findViewById(R.id.addButton);
+        addResponseButton = view.findViewById(R.id.addResponseButton);
 
-        preferences = requireContext().getSharedPreferences(PREFS_NAME, 0);
+        preferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        responseList = getSavedResponses();
 
-        responseList = new ArrayList<>();
-        responseAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_single_choice, responseList);
-        responseListView.setAdapter(responseAdapter);
-        responseListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        setupRecyclerView();
 
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String response = responseEditText.getText().toString().trim();
-                if (!response.isEmpty()) {
-                    responseList.add(response);
-                    responseAdapter.notifyDataSetChanged();
-                    responseEditText.setText("");
-                    saveResponses(responseList);
-                }
+        addResponseButton.setOnClickListener(v -> {
+            String newResponse = responseEditText.getText().toString().trim();
+            if (!newResponse.isEmpty()) {
+                addResponse(newResponse);
+                responseEditText.setText("");
             }
         });
-
-        loadSavedResponses();
 
         return view;
     }
 
-    private void loadSavedResponses() {
-        Set<String> savedResponses = preferences.getStringSet(PREF_RESPONSES, null);
-        if (savedResponses != null) {
-            responseList.addAll(savedResponses);
-            responseAdapter.notifyDataSetChanged();
-        }
+    // Définir l'interface OnSendMessageListener
+    public interface OnSendMessageListener {
+        void onSendMessage(String phoneNumber, String message);
     }
 
-    private void saveResponses(ArrayList<String> responses) {
-        Set<String> savedResponses = new HashSet<>(responses);
+    private void setupRecyclerView() {
+        responseAdapter = new ResponseAdapter(responseList, this);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(responseAdapter);
+    }
+
+    private List<Response> getSavedResponses() {
+        List<Response> responses = new ArrayList<>();
+
+        Set<String> savedResponses = preferences.getStringSet(PREF_RESPONSES, null);
+        if (savedResponses == null || savedResponses.isEmpty()) {
+            responses.add(new Response("Je vous rappelle", true));
+            responses.add(new Response("Je te rappelle", true));
+            responses.add(new Response("J'arrive dans 10 minutes", true));
+        } else {
+            for (String response : savedResponses) {
+                responses.add(new Response(response, false));
+            }
+        }
+
+        return responses;
+    }
+
+
+
+    private void saveResponses() {
+        Set<String> savedResponses = new HashSet<>();
+        for (Response response : responseList) {
+            savedResponses.add(response.getResponse());
+        }
         preferences.edit().putStringSet(PREF_RESPONSES, savedResponses).apply();
+    }
+
+    private void addResponse(String response) {
+        responseList.add(new Response(response, false));
+        responseAdapter.notifyDataSetChanged();
+        saveResponses();
+    }
+
+    @Override
+    public void onResponseClick(String response) {
+        // Gérer l'événement de clic sur une réponse
     }
 }

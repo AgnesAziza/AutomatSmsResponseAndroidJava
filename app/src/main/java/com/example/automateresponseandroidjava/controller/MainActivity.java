@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.automateresponseandroidjava.R;
+import com.example.automateresponseandroidjava.adapter.ViewPagerAdapter;
 import com.example.automateresponseandroidjava.controller.AutomaticRespondFragment;
 import com.example.automateresponseandroidjava.controller.ContactFragment;
 import com.example.automateresponseandroidjava.controller.ResponseFragment;

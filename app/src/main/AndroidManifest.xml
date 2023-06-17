@@ -10,7 +10,7 @@
         android:theme="@style/Theme.AutomateResponseAndroidJava">
 
 
-        <activity android:name=".controller.MainActivity"
+        <activity android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
