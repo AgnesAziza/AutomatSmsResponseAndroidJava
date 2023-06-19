@@ -16,6 +16,15 @@ import java.util.List;
 
 public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactViewHolder> {
     private List<Contact> contactList;
+    private OnContactClickListener contactClickListener;
+
+    public interface OnContactClickListener {
+        void onContactClick(Contact contact);
+    }
+
+    public void setOnContactClickListener(OnContactClickListener listener) {
+        this.contactClickListener = listener;
+    }
 
     public ContactAdapter(List<Contact> contactList) {
         this.contactList = contactList;
@@ -34,6 +43,15 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
         holder.nameTextView.setText(contact.getName());
         holder.phoneTextView.setText(contact.getPhoneNumber());
         holder.checkBox.setChecked(contact.isSelected());
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (contactClickListener != null) {
+                    contactClickListener.onContactClick(contact);
+                }
+            }
+        });
 
         holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> contact.setSelected(isChecked));
     }

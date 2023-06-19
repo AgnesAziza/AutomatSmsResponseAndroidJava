@@ -37,6 +37,8 @@ public class ResponseFragment extends Fragment implements ResponseAdapter.OnResp
     private EditText responseEditText;
     private Button addResponseButton;
 
+    private String selectedContact;
+
     public interface OnSendMessageListener {
         void onSendMessage(String phoneNumber, String message);
     }
@@ -104,6 +106,16 @@ public class ResponseFragment extends Fragment implements ResponseAdapter.OnResp
 
     @Override
     public void onResponseClick(String response) {
-        // Gérer l'événement de clic sur une réponse
+        if (selectedContact != null) {
+            // Utilisez la méthode onSendMessage pour envoyer le message avec le numéro de téléphone approprié
+            if (getActivity() instanceof OnSendMessageListener) {
+                OnSendMessageListener listener = (OnSendMessageListener) getActivity();
+                listener.onSendMessage(selectedContact, response);
+            }
+        }
+    }
+
+    public void setSelectedContact(String contact) {
+        selectedContact = contact;
     }
 }
