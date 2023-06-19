@@ -3,7 +3,6 @@ package com.example.automateresponseandroidjava.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -27,7 +26,7 @@ public class ResponseAdapter extends RecyclerView.Adapter<ResponseAdapter.Respon
     @NonNull
     @Override
     public ResponseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_response, parent, false);
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.response_item, parent, false);
         return new ResponseViewHolder(itemView);
     }
 

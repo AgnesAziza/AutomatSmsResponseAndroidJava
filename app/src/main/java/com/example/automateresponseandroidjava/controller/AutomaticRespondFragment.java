@@ -48,5 +48,6 @@ public class AutomaticRespondFragment extends Fragment implements ResponseAdapte
 
     @Override
     public void onResponseClick(String response) {
+        // Gérer l'événement de clic sur une réponse
     }
 }

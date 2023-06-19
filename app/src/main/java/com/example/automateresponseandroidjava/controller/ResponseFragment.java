@@ -37,6 +37,10 @@ public class ResponseFragment extends Fragment implements ResponseAdapter.OnResp
     private EditText responseEditText;
     private Button addResponseButton;
 
+    public interface OnSendMessageListener {
+        void onSendMessage(String phoneNumber, String message);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -61,11 +65,6 @@ public class ResponseFragment extends Fragment implements ResponseAdapter.OnResp
         return view;
     }
 
-    // Définir l'interface OnSendMessageListener
-    public interface OnSendMessageListener {
-        void onSendMessage(String phoneNumber, String message);
-    }
-
     private void setupRecyclerView() {
         responseAdapter = new ResponseAdapter(responseList, this);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -88,8 +87,6 @@ public class ResponseFragment extends Fragment implements ResponseAdapter.OnResp
 
         return responses;
     }
-
-
 
     private void saveResponses() {
         Set<String> savedResponses = new HashSet<>();
