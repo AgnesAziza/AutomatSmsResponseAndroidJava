@@ -43,7 +43,16 @@ public class ContactFragment extends Fragment {
             contactAdapter = new ContactAdapter(contacts);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             recyclerView.setAdapter(contactAdapter);
+
+            // définir le gestionnaire de clics
+            contactAdapter.setOnContactClickListener(new ContactAdapter.OnContactClickListener() {
+                @Override
+                public void onContactClick(Contact contact) {
+                    Toast.makeText(getContext(), "Selected contact: " + contact.getName() + " Phone: " + contact.getPhoneNumber(), Toast.LENGTH_SHORT).show();
+                }
+            });
         }
+
 
         return view;
     }
@@ -80,6 +89,12 @@ public class ContactFragment extends Fragment {
             if (contacts != null) {
                 contactAdapter = new ContactAdapter(contacts);
                 recyclerView.setAdapter(contactAdapter);
+                contactAdapter.setOnContactClickListener(new ContactAdapter.OnContactClickListener() {
+                    @Override
+                    public void onContactClick(Contact contact) {
+                        Toast.makeText(getContext(), "Selected contact: " + contact.getName() + " Phone: " + contact.getPhoneNumber(), Toast.LENGTH_SHORT).show();
+                    }
+                });
                 contactAdapter.notifyDataSetChanged();
             }
         }
@@ -95,6 +110,12 @@ public class ContactFragment extends Fragment {
                 if (contacts != null) {
                     contactAdapter = new ContactAdapter(contacts);
                     recyclerView.setAdapter(contactAdapter);
+                    contactAdapter.setOnContactClickListener(new ContactAdapter.OnContactClickListener() {
+                        @Override
+                        public void onContactClick(Contact contact) {
+                            Toast.makeText(getContext(), "Selected contact: " + contact.getName() + " Phone: " + contact.getPhoneNumber(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                     contactAdapter.notifyDataSetChanged();
                 }
             } else {
@@ -103,4 +124,5 @@ public class ContactFragment extends Fragment {
             }
         }
     }
+
 }

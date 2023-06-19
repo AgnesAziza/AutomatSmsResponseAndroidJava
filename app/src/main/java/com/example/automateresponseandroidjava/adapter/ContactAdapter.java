@@ -22,6 +22,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
         void onContactClick(Contact contact);
     }
 
+
     public void setOnContactClickListener(OnContactClickListener listener) {
         this.contactClickListener = listener;
     }
@@ -44,16 +45,22 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
         holder.phoneTextView.setText(contact.getPhoneNumber());
         holder.checkBox.setChecked(contact.isSelected());
 
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
+        holder.checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                contact.setSelected(((CheckBox)v).isChecked());
                 if (contactClickListener != null) {
                     contactClickListener.onContactClick(contact);
                 }
             }
         });
 
-        holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> contact.setSelected(isChecked));
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                holder.checkBox.performClick();
+            }
+        });
     }
 
     @Override
@@ -66,7 +73,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
         TextView phoneTextView;
         CheckBox checkBox;
 
-        public ContactViewHolder(@NonNull View itemView) {
+        public ContactViewHolder(View itemView) {
             super(itemView);
             nameTextView = itemView.findViewById(R.id.name_text_view);
             phoneTextView = itemView.findViewById(R.id.phone_text_view);
