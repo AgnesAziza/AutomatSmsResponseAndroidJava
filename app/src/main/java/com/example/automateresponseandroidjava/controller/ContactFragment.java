@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,22 +16,52 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.automateresponseandroidjava.R;
 import com.example.automateresponseandroidjava.adapter.ContactAdapter;
 import com.example.automateresponseandroidjava.model.Contact;
+import com.example.automateresponseandroidjava.viewmodel.SharedViewModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class ContactFragment extends Fragment {
+public class ContactFragment extends Fragment implements ContactAdapter.OnContactClickListener {
+    private OnContactSelectedListener onContactSelectedListener;
     private RecyclerView recyclerView;
     private ContactAdapter contactAdapter;
     private List<Contact> contacts;
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        // Initialize onContactSelectedListener from the activity
+        if (getActivity() instanceof OnContactSelectedListener) {
+            onContactSelectedListener = (OnContactSelectedListener) getActivity();
+        }
+    }
+
+
+    @Override
+    public void onContactClick(Contact contact) {
+        Toast.makeText(getContext(), "Contact sélectionné: " + contact.getName() + " Téléphone: " + contact.getPhoneNumber(), Toast.LENGTH_SHORT).show();
+        onContactSelected(contact);
+    }
+
+    public void onContactSelected(Contact contact) {
+        Log.d("ContactsFragment", "Contact sélectionné: " + contact.getName());
+        if (onContactSelectedListener != null) {
+            onContactSelectedListener.onContactSelected(contact);
+        }
+        SharedViewModel sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+        sharedViewModel.setSelectedContact(contact);
+    }
+
 
     @Nullable
     @Override
@@ -45,12 +76,7 @@ public class ContactFragment extends Fragment {
             recyclerView.setAdapter(contactAdapter);
 
             // définir le gestionnaire de clics
-            contactAdapter.setOnContactClickListener(new ContactAdapter.OnContactClickListener() {
-                @Override
-                public void onContactClick(Contact contact) {
-                    Toast.makeText(getContext(), "Selected contact: " + contact.getName() + " Phone: " + contact.getPhoneNumber(), Toast.LENGTH_SHORT).show();
-                }
-            });
+            contactAdapter.setOnContactClickListener(this);
         }
 
 
@@ -78,51 +104,33 @@ public class ContactFragment extends Fragment {
             // Demande de permission pour lire les contacts
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_CONTACTS}, 1);
         }
-        return contacts;
-    }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-            contacts = getContacts();
-            if (contacts != null) {
-                contactAdapter = new ContactAdapter(contacts);
-                recyclerView.setAdapter(contactAdapter);
-                contactAdapter.setOnContactClickListener(new ContactAdapter.OnContactClickListener() {
-                    @Override
-                    public void onContactClick(Contact contact) {
-                        Toast.makeText(getContext(), "Selected contact: " + contact.getName() + " Phone: " + contact.getPhoneNumber(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-                contactAdapter.notifyDataSetChanged();
-            }
+        // Demande de permission pour envoyer des SMS
+        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.SEND_SMS}, 2);
         }
+
+        return contacts;
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
         if (requestCode == 1) {
+            // Refresh the contacts
+            contacts = getContacts();
+            contactAdapter.notifyDataSetChanged();
+        }
+
+        if (requestCode == 2) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission accordée, rechargez les contacts
-                contacts = getContacts();
-                if (contacts != null) {
-                    contactAdapter = new ContactAdapter(contacts);
-                    recyclerView.setAdapter(contactAdapter);
-                    contactAdapter.setOnContactClickListener(new ContactAdapter.OnContactClickListener() {
-                        @Override
-                        public void onContactClick(Contact contact) {
-                            Toast.makeText(getContext(), "Selected contact: " + contact.getName() + " Phone: " + contact.getPhoneNumber(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                    contactAdapter.notifyDataSetChanged();
-                }
+                // Permission accordée pour envoyer des SMS
+                Toast.makeText(getContext(), "Permission to send SMS granted", Toast.LENGTH_SHORT).show();
             } else {
-                // Permission refusée, vous pouvez afficher un message à l'utilisateur
-                Toast.makeText(getContext(), "Permission to read contacts is not granted", Toast.LENGTH_SHORT).show();
+                // Permission refusée pour envoyer des SMS
+                Toast.makeText(getContext(), "Permission to send SMS not granted", Toast.LENGTH_SHORT).show();
             }
         }
     }
-
 }

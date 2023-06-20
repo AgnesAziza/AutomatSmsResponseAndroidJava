@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,38 +29,68 @@ import com.example.automateresponseandroidjava.viewmodel.SharedViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
-    public class AutomaticRespondFragment extends Fragment implements ResponseAdapter.OnResponseClickListener {
+public class AutomaticRespondFragment extends Fragment implements ResponseAdapter.OnResponseClickListener {
 
-        private RecyclerView recyclerView;
-        private ResponseAdapter responseAdapter;
-        private List<Response> responseList;
-        private SharedViewModel sharedViewModel;
+    private RecyclerView recyclerView;
+    private ResponseAdapter responseAdapter;
+    private List<Response> responseList;
+    private SharedViewModel sharedViewModel;
 
-        private static final int REQUEST_SMS_PERMISSION = 2;
+    private static final int REQUEST_SMS_PERMISSION = 2;
 
-        @Nullable
-        @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-            View view = inflater.inflate(R.layout.fragment_automatic_response, container, false);
-            TextView nameTextView = view.findViewById(R.id.name_text_view);
-            TextView phoneTextView = view.findViewById(R.id.phone_text_view);
+    @Override
+    public void onContactSelected(Contact contact) {
+        // Implémentez le comportement souhaité lorsque le contact est sélectionné
+        // Par exemple, vous pouvez mettre à jour le contact sélectionné dans le ViewModel partagé
+        sharedViewModel.setSelectedContact(contact);
+    }
 
-            sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
-            // Get the selected contact from the shared view model instead
-            Contact selectedContact = sharedViewModel.getSelectedContact();
-            if (selectedContact != null) {
-                nameTextView.setText(selectedContact.getName());
-                phoneTextView.setText(selectedContact.getPhoneNumber());
-            }
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        Log.d("AutomaticRespondFragment", "onCreateView()");
+        View rootView = inflater.inflate(R.layout.fragment_automatic_response, container, false);
+        TextView nameTextView = rootView.findViewById(R.id.name_text_view);
+        TextView phoneTextView = rootView.findViewById(R.id.phone_text_view);
 
-            recyclerView = view.findViewById(R.id.responseRecyclerView);
-            responseList = getSavedResponses();
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
-            setupRecyclerView();
-
-            return view;
+        // Get the selected contact from the shared view model instead
+        Contact selectedContact = sharedViewModel.getSelectedContact();
+        if (selectedContact != null) {
+            nameTextView.setText(selectedContact.getName());
+            phoneTextView.setText(selectedContact.getPhoneNumber());
         }
+
+        recyclerView = rootView.findViewById(R.id.responseRecyclerView);
+        responseList = getSavedResponses();
+
+        setupRecyclerView(rootView);
+
+        Button sendMessageButton = rootView.findViewById(R.id.sendMessageButton);
+        sendMessageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Contact selectedContact = sharedViewModel.getSelectedContact();
+                if (selectedContact != null) {
+                    String phoneNumber = selectedContact.getPhoneNumber();
+                    String automaticResponse = sharedViewModel.getAutomaticResponse();
+                    if (phoneNumber != null && automaticResponse != null) {
+                        sendSms(phoneNumber, automaticResponse);
+                    } else {
+                        Toast.makeText(getContext(), "Invalid phone number or message", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(getContext(), "No contact selected", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+
+
+        return rootView;
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -69,6 +100,7 @@ import java.util.List;
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission accordée, vous pouvez maintenant envoyer le SMS
                 Contact selectedContact = sharedViewModel.getSelectedContact();
+                String phoneNumber = selectedContact.getPhoneNumber();
                 String automaticResponse = sharedViewModel.getAutomaticResponse();
                 sendSms(selectedContact.getPhoneNumber(), automaticResponse);
             } else {
@@ -78,12 +110,27 @@ import java.util.List;
         }
     }
 
-
-    private void setupRecyclerView() {
+    private void setupRecyclerView(View rootView) {
         responseAdapter = new ResponseAdapter(responseList, this);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(responseAdapter);
+
+        Button sendMessageButton = rootView.findViewById(R.id.sendMessageButton);
+        sendMessageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Contact selectedContact = sharedViewModel.getSelectedContact();
+                if (selectedContact != null) {
+                    String phoneNumber = selectedContact.getPhoneNumber();
+                    String automaticResponse = sharedViewModel.getAutomaticResponse();
+                    sendSms(phoneNumber, automaticResponse);
+                } else {
+                    Toast.makeText(getContext(), "No contact selected", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
+
 
     private List<Response> getSavedResponses() {
         return new ArrayList<>();
@@ -93,16 +140,18 @@ import java.util.List;
     public void onResponseClick(String response) {
         Contact selectedContact = sharedViewModel.getSelectedContact();
         String phoneNumber = selectedContact.getPhoneNumber();
+        String message = response;
         Log.d("CheckValues", "Phone number: " + phoneNumber);
 
-        if (phoneNumber == null || phoneNumber.isEmpty() || phoneNumber.length() < 10) {
-            Log.d("CheckValues", "Invalid phone number");
+        // Vérifiez la permission d'envoyer des SMS
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+            // La permission est déjà accordée, vous pouvez envoyer le SMS
+            sendSms(phoneNumber, message);
         } else {
-            Log.d("CheckValues", "Phone number is valid");
+            // La permission n'est pas accordée, vous devez demander la permission à l'utilisateur
+            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.SEND_SMS}, REQUEST_SMS_PERMISSION);
         }
-
     }
-
 
     private void sendSms(String phoneNumber, String message) {
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
@@ -113,4 +162,5 @@ import java.util.List;
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.SEND_SMS}, REQUEST_SMS_PERMISSION);
         }
     }
+
 }

@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.automateresponseandroidjava.R;
+import com.example.automateresponseandroidjava.model.Contact;
 import com.example.automateresponseandroidjava.model.Response;
 
 import java.util.List;
@@ -58,6 +59,8 @@ public class ResponseAdapter extends RecyclerView.Adapter<ResponseAdapter.Respon
     }
 
     public interface OnResponseClickListener {
+        void onContactSelected(Contact contact);
+
         void onResponseClick(String response);
     }
 }

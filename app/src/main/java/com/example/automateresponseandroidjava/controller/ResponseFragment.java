@@ -17,7 +17,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.automateresponseandroidjava.R;
 import com.example.automateresponseandroidjava.adapter.ResponseAdapter;
+import com.example.automateresponseandroidjava.model.Contact;
 import com.example.automateresponseandroidjava.model.Response;
+import com.example.automateresponseandroidjava.viewmodel.SharedViewModel;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -25,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 public class ResponseFragment extends Fragment implements ResponseAdapter.OnResponseClickListener {
-
+    private SharedViewModel sharedViewModel;
     private static final String PREFS_NAME = "ResponsePrefs";
     private static final String PREF_RESPONSES = "SavedResponses";
 
@@ -41,6 +43,11 @@ public class ResponseFragment extends Fragment implements ResponseAdapter.OnResp
 
     public interface OnSendMessageListener {
         void onSendMessage(String phoneNumber, String message);
+    }
+
+    @Override
+    public void onContactSelected(Contact contact) {
+        sharedViewModel.setSelectedContact(contact);
     }
 
     @Nullable
