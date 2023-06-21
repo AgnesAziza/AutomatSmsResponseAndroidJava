@@ -8,16 +8,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.automateresponseandroidjava.R;
 import com.example.automateresponseandroidjava.adapter.ResponseAdapter;
-import com.example.automateresponseandroidjava.model.Contact;
 import com.example.automateresponseandroidjava.model.Response;
 import com.example.automateresponseandroidjava.viewmodel.SharedViewModel;
 
@@ -41,14 +42,30 @@ public class ResponseFragment extends Fragment implements ResponseAdapter.OnResp
 
     private String selectedContact;
 
+    private String selectedResponse;
+
+    private OnSendMessageListener sendMessageListener;
+
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof OnSendMessageListener) {
+            sendMessageListener = (OnSendMessageListener) context;
+        } else {
+            throw new IllegalArgumentException("Activity must implement OnSendMessageListener");
+        }
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+    }
     public interface OnSendMessageListener {
         void onSendMessage(String phoneNumber, String message);
     }
 
     @Override
-    public void onContactSelected(Contact contact) {
-        sharedViewModel.setSelectedContact(contact);
+    public void setResponse(String response) {
+        setSelectedContact(response);
     }
+
 
     @Nullable
     @Override
@@ -114,7 +131,14 @@ public class ResponseFragment extends Fragment implements ResponseAdapter.OnResp
     @Override
     public void onResponseClick(String response) {
         if (selectedContact != null) {
-            // Utilisez la méthode onSendMessage pour envoyer le message avec le numéro de téléphone approprié
+            selectedContact = sharedViewModel.getSelectedContact().getPhoneNumber();
+            selectedResponse = response;
+            sharedViewModel.setAutomaticResponse(response);
+            Toast.makeText(getContext(), "Message sélectionné: " + response, Toast.LENGTH_SHORT).show();
+            setSelectedContact(selectedContact);
+            if (sendMessageListener != null) {
+                sendMessageListener.onSendMessage(selectedContact, response);
+            }
             if (getActivity() instanceof OnSendMessageListener) {
                 OnSendMessageListener listener = (OnSendMessageListener) getActivity();
                 listener.onSendMessage(selectedContact, response);
@@ -125,4 +149,5 @@ public class ResponseFragment extends Fragment implements ResponseAdapter.OnResp
     public void setSelectedContact(String contact) {
         selectedContact = contact;
     }
+
 }

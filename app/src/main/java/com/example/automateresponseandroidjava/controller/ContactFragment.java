@@ -40,12 +40,10 @@ public class ContactFragment extends Fragment implements ContactAdapter.OnContac
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        // Initialize onContactSelectedListener from the activity
         if (getActivity() instanceof OnContactSelectedListener) {
             onContactSelectedListener = (OnContactSelectedListener) getActivity();
         }
     }
-
 
     @Override
     public void onContactClick(Contact contact) {
@@ -74,12 +72,8 @@ public class ContactFragment extends Fragment implements ContactAdapter.OnContac
             contactAdapter = new ContactAdapter(contacts);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             recyclerView.setAdapter(contactAdapter);
-
-            // définir le gestionnaire de clics
             contactAdapter.setOnContactClickListener(this);
         }
-
-
         return view;
     }
 

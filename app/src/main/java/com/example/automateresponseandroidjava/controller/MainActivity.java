@@ -13,7 +13,7 @@ import com.example.automateresponseandroidjava.model.Contact;
 import com.example.automateresponseandroidjava.viewmodel.SharedViewModel;
 import com.google.android.material.tabs.TabLayout;
 
-public class MainActivity extends AppCompatActivity implements ContactAdapter.OnContactClickListener {
+public class MainActivity extends AppCompatActivity implements ContactAdapter.OnContactClickListener, ResponseFragment.OnSendMessageListener {
 
     private SharedViewModel sharedViewModel;
 
@@ -22,11 +22,10 @@ public class MainActivity extends AppCompatActivity implements ContactAdapter.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
-
         // Initialization of ViewPager and TabLayout
         ViewPager viewPager = findViewById(R.id.viewPager);
         TabLayout tabLayout = findViewById(R.id.tabLayout);
+        sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
 
         // Setting up ViewPager adapter
         ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
@@ -42,8 +41,11 @@ public class MainActivity extends AppCompatActivity implements ContactAdapter.On
 
     @Override
     public void onContactClick(Contact contact) {
-        // Implement your desired behavior when a contact is clicked
-        // For example, you could update the selected contact in the shared ViewModel
         sharedViewModel.setSelectedContact(contact);
+    }
+
+    @Override
+    public void onSendMessage(String phoneNumber, String message) {
+        sharedViewModel.getAutomaticResponse();
     }
 }
