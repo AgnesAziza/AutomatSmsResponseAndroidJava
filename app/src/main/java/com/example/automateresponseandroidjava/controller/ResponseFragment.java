@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+// Fragment pour afficher et gérer les réponses
 public class ResponseFragment extends Fragment implements ResponseAdapter.OnResponseClickListener {
     private SharedViewModel sharedViewModel;
     private static final String PREFS_NAME = "ResponsePrefs";
@@ -78,8 +79,10 @@ public class ResponseFragment extends Fragment implements ResponseAdapter.OnResp
         preferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         responseList = getSavedResponses();
 
+        // Configuration de la liste des réponses.
         setupRecyclerView();
 
+        // Événement lorsqu'un nouveau message est ajouté.
         addResponseButton.setOnClickListener(v -> {
             String newResponse = responseEditText.getText().toString().trim();
             if (!newResponse.isEmpty()) {
@@ -87,19 +90,20 @@ public class ResponseFragment extends Fragment implements ResponseAdapter.OnResp
                 responseEditText.setText("");
             }
         });
-
         return view;
     }
 
+    // Configure le RecyclerView.
     private void setupRecyclerView() {
         responseAdapter = new ResponseAdapter(responseList, this);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(responseAdapter);
     }
 
+    // Récupère la liste des réponses enregistrées.
     private List<Response> getSavedResponses() {
         List<Response> responses = new ArrayList<>();
-
+        // Messages par défaut
         Set<String> savedResponses = preferences.getStringSet(PREF_RESPONSES, null);
         if (savedResponses == null || savedResponses.isEmpty()) {
             responses.add(new Response("Je vous rappelle", true));
@@ -110,10 +114,10 @@ public class ResponseFragment extends Fragment implements ResponseAdapter.OnResp
                 responses.add(new Response(response, false));
             }
         }
-
         return responses;
     }
 
+    // Enregistre la liste des réponses.
     private void saveResponses() {
         Set<String> savedResponses = new HashSet<>();
         for (Response response : responseList) {
@@ -122,32 +126,40 @@ public class ResponseFragment extends Fragment implements ResponseAdapter.OnResp
         preferences.edit().putStringSet(PREF_RESPONSES, savedResponses).apply();
     }
 
+    // Ajoute une nouvelle réponse à la liste.
     private void addResponse(String response) {
         responseList.add(new Response(response, false));
         responseAdapter.notifyDataSetChanged();
         saveResponses();
     }
 
+    // Événement lorsqu'une réponse est sélectionnée si contact non sélectionné.
     @Override
     public void onResponseClick(String response) {
-        if (selectedContact != null) {
-            selectedContact = sharedViewModel.getSelectedContact().getPhoneNumber();
-            selectedResponse = response;
-            sharedViewModel.setAutomaticResponse(response);
-            Toast.makeText(getContext(), "Message sélectionné: " + response, Toast.LENGTH_SHORT).show();
-            setSelectedContact(selectedContact);
-            if (sendMessageListener != null) {
-                sendMessageListener.onSendMessage(selectedContact, response);
-            }
-            if (getActivity() instanceof OnSendMessageListener) {
-                OnSendMessageListener listener = (OnSendMessageListener) getActivity();
-                listener.onSendMessage(selectedContact, response);
-            }
+        if (selectedContact == null) {
+            Toast.makeText(getContext(), "Veuillez sélectionner un contact", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        selectedResponse = response;
+        sharedViewModel.setAutomaticResponse(response);
+        Toast.makeText(getContext(), "Message sélectionné: " + response, Toast.LENGTH_SHORT).show();
+        if (sendMessageListener != null) {
+            sendMessageListener.onSendMessage(selectedContact, response);
+        }
+        if (getActivity() instanceof OnSendMessageListener) {
+            OnSendMessageListener listener = (OnSendMessageListener) getActivity();
+            listener.onSendMessage(selectedContact, response);
         }
     }
 
+    // Définit le contact sélectionné.
     public void setSelectedContact(String contact) {
-        selectedContact = contact;
+            if(contact != null) {
+                if(sharedViewModel.getSelectedContact() != null) {
+                    this.selectedContact = sharedViewModel.getSelectedContact().getPhoneNumber();
+                } else {
+                    Toast.makeText(getContext(), "Erreur: pas de contact.", Toast.LENGTH_SHORT).show();
+                }
+            }
     }
-
 }

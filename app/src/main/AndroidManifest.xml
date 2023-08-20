@@ -1,8 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.automateresponseandroidjava">
 
+    <!-- Demande l'autorisation pour lire les contacts du téléphone -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.SEND_SMS" />
+    <!-- Demande l'autorisation pour recevoir des SMS -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS"/>
+    <!-- Demande l'autorisation pour envoyer des SMS -->
+    <uses-permission android:name="android.permission.SEND_SMS"/>
+    <!-- Demande l'autorisation pour lire des SMS -->
+    <uses-permission android:name="android.permission.READ_SMS"/>
 
     <application
         android:allowBackup="true"
@@ -12,21 +18,25 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AutomateResponseAndroidJava">
 
-
+        <!-- Définition de l'activité principale de l'application -->
         <activity android:name=".controller.MainActivity"
             android:exported="true">
             <intent-filter>
+                <!-- Indique que cette activité est le point d'entrée principal de l'application -->
                 <action android:name="android.intent.action.MAIN" />
-
+                <!-- Catégorie qui indique que cette activité est le lanceur initial -->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-
-
+        <!-- Définition d'un receiver pour gérer les SMS entrants -->
+        <receiver android:name=".controller.IncomingSMSReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <!-- Filtre pour capturer les SMS reçus -->
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
     </application>
-
-
-
-
 </manifest>

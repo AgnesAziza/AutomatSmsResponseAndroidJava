@@ -3,7 +3,7 @@ package com.example.automateresponseandroidjava.model;
 public class Response {
     private String response;
     private boolean autoResponse;
-    private boolean selected;  // Added field to track whether the response is selected or not.
+    private boolean selected;
 
     public Response(String response, boolean autoResponse) {
         this.response = response;
